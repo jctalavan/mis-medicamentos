@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model Medicamento {
+  id               String   @id @default(uuid()) @db.Uuid
+  nombre           String
+  principio_activo String?
+  categoria        String?
+  fecha_caducidad  DateTime? @db.Date
+  cantidad         Int      @default(1)
+  unidad           String   @default("comprimidos")
+  dosis            String?
+  indicaciones     String?
+  notas            String?
+  activo           Boolean  @default(true)
+  created_at       DateTime @default(now()) @db.Timestamptz()
+  updated_at       DateTime @updatedAt @db.Timestamptz()
+
+  administraciones Administracion[]
+
+  @@index([nombre])
+  @@index([activo])
+  @@index([fecha_caducidad])
+  @@map("medicamentos")
+}
+
+model Administracion {
+  id              String      @id @default(uuid()) @db.Uuid
+  medicamento_id  String      @db.Uuid
+  fecha           DateTime    @db.Timestamptz()
+  notas           String?
+  created_at      DateTime    @default(now()) @db.Timestamptz()
+
+  medicamento     Medicamento @relation(fields: [medicamento_id], references: [id], onDelete: Cascade)
+
+  @@index([medicamento_id])
+  @@index([fecha(sort: Desc)])
+  @@map("administraciones")
+}
