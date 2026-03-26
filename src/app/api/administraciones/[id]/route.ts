@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function DELETE(
   request: Request,
@@ -17,6 +18,15 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return NextResponse.json(
+        { error: "Administración no encontrada" },
+        { status: 404 }
+      );
+    }
     console.error("Error al eliminar administración:", error);
     return NextResponse.json(
       { error: "Error al eliminar administración" },

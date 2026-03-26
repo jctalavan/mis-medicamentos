@@ -1,4 +1,13 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
+
+/**
+ * Constant-time string comparison to prevent timing attacks.
+ */
+function safeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
 
 /**
  * Validates the API key from the request headers.
@@ -26,7 +35,7 @@ export function validateApiKey(request: Request): NextResponse | null {
     providedKey = authorization.slice(7);
   }
 
-  if (!providedKey || providedKey !== apiKey) {
+  if (!providedKey || !safeCompare(providedKey, apiKey)) {
     return NextResponse.json(
       { error: "No autorizado. API key inválida o no proporcionada." },
       { status: 401 }

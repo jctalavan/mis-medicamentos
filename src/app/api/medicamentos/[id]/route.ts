@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { medicamentoSchema } from "@/lib/types";
+import { Prisma } from "@prisma/client";
+
+function isPrismaNotFound(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025";
+}
 
 export async function GET(
   request: Request,
@@ -72,6 +77,12 @@ export async function PUT(
 
     return NextResponse.json(medicamento);
   } catch (error) {
+    if (isPrismaNotFound(error)) {
+      return NextResponse.json(
+        { error: "Medicamento no encontrado" },
+        { status: 404 }
+      );
+    }
     console.error("Error al actualizar medicamento:", error);
     return NextResponse.json(
       { error: "Error al actualizar medicamento" },
@@ -95,6 +106,12 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (isPrismaNotFound(error)) {
+      return NextResponse.json(
+        { error: "Medicamento no encontrado" },
+        { status: 404 }
+      );
+    }
     console.error("Error al eliminar medicamento:", error);
     return NextResponse.json(
       { error: "Error al eliminar medicamento" },
